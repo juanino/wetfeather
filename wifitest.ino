@@ -51,44 +51,8 @@ int value = 0;
 void loop() {
   // send your sensor data
   check_water1();
- /* sendsensor();
-
-  // now checkin
-  delay(5000);
-  ++value;
-
-  Serial.print("checkin connecting to ");
-  Serial.println(host);
-  
-  // Use WiFiClient class to create TCP connections
-  WiFiClient client;
-  const int httpPort = 5000;
-  if (!client.connect(host, httpPort)) {
-    Serial.println("connection failed");
-    return;
-  }
-  
-  // We now create a URI for the request
-  String url = "/checkin/";
-  Serial.print("Requesting URL: ");
-  Serial.println(url);
-  
-  // This will send the request to the server
-  client.print(String("GET ") + url + devicename + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" + 
-               "Connection: close\r\n\r\n");
-  delay(500);
-  
-  // Read all the lines of the reply from server and print them to Serial
-  while(client.available()){
-    String line = client.readStringUntil('\r');
-    Serial.print(line);
-  }
-  
-  Serial.println();
-  Serial.println("closing connection");
-  */
-}
+ 
+} // end main loop
 
 void sendsensor() {
   // here is where you should do some logic
@@ -136,7 +100,7 @@ void check_water1() {
     delay(500);
     send_ifttt();
     delay(500);
-    sendsensor();
+    sendsensor(); // call out to flask
   } else {
     // turn LED off:
     digitalWrite(floodLed, HIGH);
