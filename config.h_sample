@@ -1,6 +1,6 @@
 const char* ssid     = "XXXXXXX";
 const char* password = "XXXXXXXXXXX";
 
-const char* host = "XXX.XXX.X.XXX";
+const char* host = "XXX.XXX.X.XXX"; // the host of your flask server if u have one
 const char* ifttt = "maker.ifttt.com";
-const char* ifttt_key = "XXXXXXXXXXXXXXXXXXXXXX";
+const char* ifttt_key = "XXXXXXXXXXXXXXXXXXXXXX"; // get from webhook documentation
