@@ -11,7 +11,7 @@ Despite it's name, wifitest.ino is the main file. To run:
 * Upload to the board
 
 # notes
-* pin0 red led on the feather will light up if sensor is wire (wires connected)
+* pin0 red led on the feather will light up if sensor is wet (wires connected)
 * pin2 blue led on the feather will go solid while looking for wifi
 * pin2 blue will also flash every few hundred cycles so you know it is looping still
 * I've been told a higher resistor like 1meg will help the accuracy but 10k worked fine for me
