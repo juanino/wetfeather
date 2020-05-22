@@ -13,8 +13,8 @@ const char* devicename = "laundry1";
 const int water1 = 14; // water sensor plate on pin 14
 const int floodLed = 0; // builtin led on feather for alarm
 const int runningLed = 2; // used to visually confirm the program is running
-const int max_alerts = 2; // number of alerts before we trip a breaker and stop alerting
-const unsigned long max_wait = 80000; // number of miliseconds 
+const int max_alerts = 20; // number of alerts before we trip a breaker and stop alerting
+const unsigned long max_wait = 900000; // number of miliseconds 
 
 // variables for sensors
 int water1State = 0; // var for reading plate sensor #1
@@ -66,7 +66,7 @@ int circuit_breaker() {
   Serial.println(current_ms);
   Serial.print("breaker_hit_ms:");
   Serial.print(breaker_hit_ms);
-  delay(1000);
+  // delay(1000);
   if (current_ms - breaker_hit_ms >= max_wait) {
     Serial.println("----------->resetting the circuit breaker.");
     delay(1000);
