@@ -13,10 +13,18 @@ const char* devicename = "laundry1";
 const int water1 = 14; // water sensor plate on pin 14
 const int floodLed = 0; // builtin led on feather for alarm
 const int runningLed = 2; // used to visually confirm the program is running
+const int max_alerts = 2; // number of alerts before we trip a breaker and stop alerting
+const unsigned long max_wait = 80000; // number of miliseconds 
 
-// variables
+// variables for sensors
 int water1State = 0; // var for reading plate sensor #1
 int prior_w1state = 0; // placeholder for comparing state changes for sensor #1
+// vars for timers and logic settings
+int flash_counter = 0; // how count through loop() for flashing the led
+int alerts = 0; // how many alerts have been sent
+int silent = 0; // 0 = not silent , 1 = silent mode
+unsigned long breaker_hit_ms = 0; // store miliseconds uptime when we hit circuit breaker
+
 
 void setup() {
   // Water sensor setup 
@@ -36,20 +44,48 @@ void setup() {
   digitalWrite(runningLed, HIGH);
 }
 
-int value = 0;
-int flash_counter = 0;
+
 
 // main loop
 void loop() {
   // send your sensor data
-  check_water1();
-  flash();
- 
+  check_water1(); // this will call send_ifttt & sendsensor for ifttt and flask post
+  flash(); // intermittently flash the blue led so we know it's still working
+  if (circuit_breaker() == 1) {
+    silent = 1;
+  }
 } // end main loop
 
 
 // Subroutines below here
 // ----------------------
+
+int circuit_breaker() {
+  unsigned long current_ms = millis();
+  Serial.print("current_ms:");
+  Serial.println(current_ms);
+  Serial.print("breaker_hit_ms:");
+  Serial.print(breaker_hit_ms);
+  delay(1000);
+  if (current_ms - breaker_hit_ms >= max_wait) {
+    Serial.println("----------->resetting the circuit breaker.");
+    delay(1000);
+    silent = 0;
+    alerts = 0;
+    breaker_hit_ms = current_ms;
+    return(0);
+  }
+  Serial.println("You have sent: " + String(alerts) + " alerts.");
+  if (alerts > max_alerts) {
+     Serial.println("Alerts hit breaker max" + String(max_alerts) + " going silent for " + String(max_wait) + "ms");
+     if (silent == 0) {
+        breaker_hit_ms = millis(); // record uptime when we hit the circuit breaker
+     }
+     return(1);
+  } else {
+    return(0);
+  }
+} //end breaker
 
 void flash() {
   /* alternate the blue light so we know we haven't crashed
@@ -90,6 +126,10 @@ void setup_wifi() {
 }
 
 void sendsensor(int status) {
+  if (silent == 1) {
+    Serial.println("skipping flask send due to circuit breaker");
+    return;
+  }
   Serial.print("you sent in a status of: " + String(status));
   delay(1000);
   Serial.print("sendsensor: connecting to ");
@@ -152,8 +192,13 @@ void check_water1() {
 }
 
 void send_ifttt(String status) {
+  if (silent == 1) {
+    Serial.println("skipping send due to circuit breaker");
+    return;
+  }
   // here is where you should do some logic
   // like read a sensor to send to the server
+  alerts++;
   Serial.print("sendsensor: connecting to ");
   Serial.println(ifttt);
   
