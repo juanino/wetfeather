@@ -11,14 +11,17 @@
 // fixed items
 const char* devicename = "laundry1";
 const int water1 = 14; // water sensor plate on pin 14
-const int floodLed = 0; // builtin led on feather for alarm
-const int runningLed = 2; // used to visually confirm the program is running
+const int water2 = 12; // seond water sensor on pin 12
+const int floodLed = 0; // builtin RED led on feather for alarm
+const int runningLed = 2; // BLUE led used to visually confirm the program is running
 const int max_alerts = 20; // number of alerts before we trip a breaker and stop alerting
 const unsigned long max_wait = 900000; // number of miliseconds 
 
 // variables for sensors
 int water1State = 0; // var for reading plate sensor #1
+int water2State = 0; //second sensor
 int prior_w1state = 0; // placeholder for comparing state changes for sensor #1
+int prior_w2state = 0; // second sensor
 // vars for timers and logic settings
 int flash_counter = 0; // how count through loop() for flashing the led
 int alerts = 0; // how many alerts have been sent
@@ -33,6 +36,7 @@ void setup() {
   digitalWrite(floodLed, HIGH);
   // init water plate as a input button
   pinMode(water1, INPUT);
+  pinMode(water2, INPUT);
   
   Serial.begin(115200);
   delay(100);
@@ -45,20 +49,58 @@ void setup() {
 }
 
 
-
 // main loop
 void loop() {
-  // send your sensor data
-  check_water1(); // this will call send_ifttt & sendsensor for ifttt and flask post
-  flash(); // intermittently flash the blue led so we know it's still working
+  /* check sensor
+     call send_ifttt for push msg
+     call sendsensor flask post and SMS */
+     
+  // check_water1(); 
+  /* check each sensor */
+  check_water(water1, &prior_w1state, &water1State);
+  check_water(water2, &prior_w2state, &water2State);
+   
+  /* intermittently flash the blue led so we know it's still working */
+  flash(); 
+
+  /* check if too many alerts */
   if (circuit_breaker() == 1) {
     silent = 1;
   }
 } // end main loop
 
 
+
 // Subroutines below here
 // ----------------------
+
+void check_water(int sensorpin, int* prior_state, int* waterXstate ) {
+  Serial.println("Checking plate sensor on " + String(sensorpin));
+  *prior_state = *waterXstate;
+  *waterXstate = digitalRead(sensorpin); // read water sensor #1
+  if (*prior_state == *waterXstate) {
+    Serial.println("Same state as before:" + String(*waterXstate));
+    return;
+  }
+  // check if wet, because plate would be high #dank
+  if (*waterXstate == HIGH) {
+    //turn LED on:
+    digitalWrite(floodLed, LOW); // not sure why LOW is on for feather pin #0
+    Serial.println("plate wet: light should go ON");
+    delay(500);
+    send_ifttt("wet");
+    delay(500);
+    sendsensor(1); // call out to flask 0=dry 1=wet
+  } else {
+    // turn LED off:
+    digitalWrite(floodLed, HIGH);
+    Serial.println("plate dry: light should go OFF");
+    sendsensor(0); // call out to flask 0=dry 1=wet
+    send_ifttt("dry");
+    delay(500);
+  }
+}
+
 
 int circuit_breaker() {
   unsigned long current_ms = millis();
@@ -66,6 +108,7 @@ int circuit_breaker() {
   Serial.println(current_ms);
   Serial.print("breaker_hit_ms:");
   Serial.print(breaker_hit_ms);
+  Serial.println();
   // delay(1000);
   if (current_ms - breaker_hit_ms >= max_wait) {
     Serial.println("----------->resetting the circuit breaker.");
@@ -164,32 +207,7 @@ void sendsensor(int status) {
   Serial.println("closing connection on SENDSENSOR------------");
 }
 
-void check_water1() {
-  Serial.println("Checking water1 plate sensor.");
-  prior_w1state = water1State;
-  water1State = digitalRead(water1); // read water sensor #1
-  if (prior_w1state == water1State) {
-    Serial.println("Same state as before:" + String(water1State));
-    return;
-  }
-  // check if wet, because plate would be high #dank
-  if (water1State == HIGH) {
-    //turn LED on:
-    digitalWrite(floodLed, LOW); // not sure why LOW is on for feather pin #0
-    Serial.println("plate wet: light should go ON");
-    delay(500);
-    send_ifttt("wet");
-    delay(500);
-    sendsensor(1); // call out to flask 0=dry 1=wet
-  } else {
-    // turn LED off:
-    digitalWrite(floodLed, HIGH);
-    Serial.println("plate dry: light should go OFF");
-    sendsensor(0); // call out to flask 0=dry 1=wet
-    send_ifttt("dry");
-    delay(500);
-  }
-}
+
 
 void send_ifttt(String status) {
   if (silent == 1) {
