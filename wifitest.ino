@@ -1,5 +1,6 @@
 /*
- *  Simple HTTP get webclient test
+ *  Using adafruit esp8266 feather
+ *  More info at https://github.com/juanino/wetfeather
  */
 
 #include <ESP8266WiFi.h>
