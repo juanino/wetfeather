@@ -16,7 +16,7 @@ const int water2 = 12; // seond water sensor on pin 12
 const int floodLed = 0; // builtin RED led on feather for alarm
 const int runningLed = 2; // BLUE led used to visually confirm the program is running
 const int max_alerts = 20; // number of alerts before we trip a breaker and stop alerting
-const unsigned long max_wait = 900000; // number of miliseconds 
+const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
 
 // variables for sensors
 int water1State = 0; // var for reading plate sensor #1
@@ -89,7 +89,8 @@ void check_water(int sensorpin, int* prior_state, int* waterXstate ) {
     digitalWrite(floodLed, LOW); // not sure why LOW is on for feather pin #0
     Serial.println("plate wet: light should go ON");
     delay(500);
-    send_ifttt("wet");
+    String wet_msg = String(sensorpin) + "wet";
+    send_ifttt(wet_msg);
     delay(500);
     sendsensor(1); // call out to flask 0=dry 1=wet
   } else {
@@ -97,7 +98,8 @@ void check_water(int sensorpin, int* prior_state, int* waterXstate ) {
     digitalWrite(floodLed, HIGH);
     Serial.println("plate dry: light should go OFF");
     sendsensor(0); // call out to flask 0=dry 1=wet
-    send_ifttt("dry");
+    String dry_msg = String(sensorpin) + "dry";
+    send_ifttt(dry_msg);
     delay(500);
   }
 }
