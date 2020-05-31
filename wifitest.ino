@@ -15,8 +15,9 @@ const int water1 = 14; // water sensor plate on pin 14
 const int water2 = 12; // seond water sensor on pin 12
 const int floodLed = 0; // builtin RED led on feather for alarm
 const int runningLed = 2; // BLUE led used to visually confirm the program is running
-const int max_alerts = 4; // number of alerts before we trip a breaker and stop alerting
-const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
+const int max_alerts = 1; // number of alerts before we trip a breaker and stop alerting
+// const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
+const unsigned long max_wait = 60000;
 
 // variables for sensors
 int water1State = 0; // var for reading plate sensor #1
@@ -66,7 +67,16 @@ void loop() {
 
   /* check if too many alerts */
   if (circuit_breaker() == 1) {
-    silent = 1;
+    int prior_silent_state = silent;
+    silent = 1; // if circuit_breaker() is tripped we go silent for a while
+    Serial.println("---------------------");
+    Serial.print(String(prior_silent_state) + " " + String(silent));
+    if (prior_silent_state != silent) {
+      // state change to break on occured
+      String msg = "breaker" + String(silent);
+      send_ifttt(msg);
+      delay(1000);
+    }
   }
 } // end main loop
 
@@ -112,11 +122,15 @@ int circuit_breaker() {
   Serial.print("breaker_hit_ms:");
   Serial.print(breaker_hit_ms);
   Serial.println();
-  // delay(1000);
   if (current_ms - breaker_hit_ms >= max_wait) {
     Serial.println("----------->resetting the circuit breaker.");
     delay(1000);
+    int prior_silent = silent;
     silent = 0;
+    if (prior_silent != silent) {
+      String msg = "breaker0";
+      send_ifttt(msg);
+    }
     alerts = 0;
     breaker_hit_ms = current_ms;
     return(0);
@@ -213,7 +227,11 @@ void sendsensor(int status, int sensorpin) {
 
 
 void send_ifttt(String status) {
-  if (silent == 1) {
+  Serial.println("Status is" + status);
+  delay(1000);
+  if (silent == 1 && status != "breaker1" && status != "breaker0") {
+    // let it through if it's a breaker message so we know
+    // we tripped the breaker
     Serial.println("skipping send due to circuit breaker");
     return;
   }
