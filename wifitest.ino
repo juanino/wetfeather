@@ -15,7 +15,7 @@ const int water1 = 14; // water sensor plate on pin 14
 const int water2 = 12; // seond water sensor on pin 12
 const int floodLed = 0; // builtin RED led on feather for alarm
 const int runningLed = 2; // BLUE led used to visually confirm the program is running
-const int max_alerts = 20; // number of alerts before we trip a breaker and stop alerting
+const int max_alerts = 4; // number of alerts before we trip a breaker and stop alerting
 const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
 
 // variables for sensors
@@ -53,10 +53,10 @@ void setup() {
 // main loop
 void loop() {
   /* check sensor
-     call send_ifttt for push msg
-     call sendsensor flask post and SMS */
+   * call send_ifttt for push msg
+   * call sendsensor flask post and SMS 
+   */
      
-  // check_water1(); 
   /* check each sensor */
   check_water(water1, &prior_w1state, &water1State);
   check_water(water2, &prior_w2state, &water2State);
@@ -92,12 +92,12 @@ void check_water(int sensorpin, int* prior_state, int* waterXstate ) {
     String wet_msg = String(sensorpin) + "wet";
     send_ifttt(wet_msg);
     delay(500);
-    sendsensor(1); // call out to flask 0=dry 1=wet
+    sendsensor(1,sensorpin); // call out to flask 0=dry 1=wet
   } else {
     // turn LED off:
     digitalWrite(floodLed, HIGH);
     Serial.println("plate dry: light should go OFF");
-    sendsensor(0); // call out to flask 0=dry 1=wet
+    sendsensor(0,sensorpin); // call out to flask 0=dry 1=wet
     String dry_msg = String(sensorpin) + "dry";
     send_ifttt(dry_msg);
     delay(500);
@@ -171,7 +171,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void sendsensor(int status) {
+void sendsensor(int status, int sensorpin) {
   if (silent == 1) {
     Serial.println("skipping flask send due to circuit breaker");
     return;
@@ -195,7 +195,7 @@ void sendsensor(int status) {
   Serial.println(url);
   
   // This will send the request to the server
-  client.print(String("GET ") + url + devicename + "/water1/" + String(status) + " HTTP/1.1\r\n" +
+  client.print(String("GET ") + url + devicename + "/" + sensorpin + "/" + String(status) + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
                "Connection: close\r\n\r\n");
 
