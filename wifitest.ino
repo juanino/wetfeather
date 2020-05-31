@@ -15,9 +15,8 @@ const int water1 = 14; // water sensor plate on pin 14
 const int water2 = 12; // seond water sensor on pin 12
 const int floodLed = 0; // builtin RED led on feather for alarm
 const int runningLed = 2; // BLUE led used to visually confirm the program is running
-const int max_alerts = 1; // number of alerts before we trip a breaker and stop alerting
-// const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
-const unsigned long max_wait = 60000;
+const int max_alerts = 4; // number of alerts before we trip a breaker and stop alerting
+const unsigned long max_wait = 900000; // number of miliseconds before the breaker is reset
 
 // variables for sensors
 int water1State = 0; // var for reading plate sensor #1
