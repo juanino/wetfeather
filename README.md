@@ -1,7 +1,7 @@
 # wetfeather
 
 Despite it's name, wifitest.ino is the main file. To run:
-* Buy an esp8266 board, mine is an adafruit feather huzzah esp8266
+* Buy an esp8266 board, mine is an adafruit feather huzzah esp8266 but you can use a cheaper hiletgo from amazon
 * Get a water sensor.  Mine is a plate with 2 wires running close to each other
 * Wire 3.3v to one of the plate wires
 * Wire pin 14 (or any gpio digital pin) to the other wire of the plate
